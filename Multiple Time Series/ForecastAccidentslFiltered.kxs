@@ -1,0 +1,108 @@
+﻿#GENERATED_BY_KXEN
+#
+# KxShell Script
+# generated on 2015-09-26 16:42:16
+# by SAP Predictive Analytics version 2.3.0
+#
+# Modified by Andreas Forster
+
+set echo on
+set utf8in on
+
+default STORE_USER ""
+default STORE_PWD ""
+default DESC_USER ""
+default DESC_PWD ""
+
+
+#Declaring the 'APPLYIN' store and space
+default APPLYIN_STORE_TYPE "Kxen.FileStore"
+default APPLYIN_STORE_NAME "C:\Forecasting"
+default APPLYIN_STORE_USER $STORE_USER
+default APPLYIN_STORE_PWD $STORE_PWD
+default APPLYIN_STORE_ALIAS myApplyInStore
+default APPLYIN_SPACE "AccidentsMultipleLocations.csv"
+default APPLYIN_SEED 1960
+
+#Declaring the 'APPLYOUT' store and space
+default APPLYOUT_STORE_TYPE "Kxen.FileStore"
+default APPLYOUT_STORE_NAME "C:\Forecasting"
+default APPLYOUT_STORE_USER $STORE_USER
+default APPLYOUT_STORE_PWD $STORE_PWD
+default APPLYOUT_STORE_ALIAS myApplyOutStore
+default APPLYOUT_SPACE "AccidentsForecast_$MYLOCATION.csv"
+
+default MODELNAME	"Accidents_AccidentsMultipleLocations_$MYLOCATION"
+default LOAD_STORE	"C:\Forecasting"
+default LOAD_STORE_TYPE	Kxen.FileStore
+
+createStore $LOAD_STORE_TYPE st
+st.openStore $LOAD_STORE
+st.restoreLastModelD $MODELNAME m
+m.getParameter ""
+
+
+-delete $APPLYIN_STORE_ALIAS
+m.openNewStore $APPLYIN_STORE_TYPE $APPLYIN_STORE_NAME $APPLYIN_STORE_USER $APPLYIN_STORE_PWD $APPLYIN_STORE_ALIAS
+m.newDataSet ApplyIn $APPLYIN_SPACE
+bind m DataSet ApplyIn t
+t.getParameter ""
+t.changeParameter Parameters/RandomSeed 1960
+t.changeParameter Parameters/RandomMax 1.0
+t.changeParameter Parameters/RandomMin 0.0
+t.changeParameter Parameters/SkippedRows 0
+t.changeParameter Parameters/LastRow 0
+t.changeParameter Parameters/Locale ""
+t.validateParameter
+delete t
+
+# Build space filter tree structure
+bind m DataSet ApplyIn s
+s.getParameter ""
+s.bindParameter "Parameters/FilterCondition" FilterCondition1
+FilterCondition1.insert "SimpleFilter1" SimpleFilter2
+delete SimpleFilter2
+delete FilterCondition1
+s.validateParameter
+s.getParameter ""
+# Fill the space filter parameters
+s.changeParameter "Parameters/FilterCondition/Operator" "And"
+s.changeParameter "Parameters/FilterCondition/SimpleFilter1/Operator" "Equal"
+s.changeParameter "Parameters/FilterCondition/SimpleFilter1/Variable" "Location"
+s.changeParameter "Parameters/FilterCondition/SimpleFilter1/Value" $MYLOCATION
+s.validateParameter
+delete s
+
+-delete $APPLYOUT_STORE_ALIAS
+m.openNewStore $APPLYOUT_STORE_TYPE $APPLYOUT_STORE_NAME $APPLYOUT_STORE_USER $APPLYOUT_STORE_PWD $APPLYOUT_STORE_ALIAS
+m.newDataSet ApplyOut $APPLYOUT_SPACE
+
+m.bind TransformInProtocol Default 0 t
+t.getParameter ""
+t.changeParameter Parameters/AutoFeedCountApplied 6
+t.validateParameter
+delete t
+
+m.getParameter ""
+m.changeParameter DataSets/ApplyIn/Parameters/LastRow 54
+m.validateParameter
+
+m.bind TransformInProtocol Default 0 t
+t.getParameter ""
+t.changeParameter Parameters/ExtraMode "Forecasts and Error Bars"
+t.validateParameter
+delete t
+
+
+m.bind protocol Default p
+p.getParameter ""
+
+p.changeParameter Parameters/ApplyInDataBase false
+p.validateParameter
+
+delete p
+
+m.sendMode apply
+delete m
+
+exit

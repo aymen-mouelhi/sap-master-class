@@ -1,2 +1,2 @@
-# sap-master-class
-Repository for SAP AI Master Class
+# Introduction
+This repository contains the tutorials and the datasets for SAP AI Master Class.

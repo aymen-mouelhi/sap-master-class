@@ -1,0 +1,135 @@
+﻿#GENERATED_BY_KXEN
+#
+# KxShell Script
+# generated on 2015-09-26 16:34:19
+# by SAP Predictive Analytics version 2.3.0
+#
+# Modified by Andreas Forster
+
+set echo on
+set utf8in on
+
+default STORE_USER ""
+default STORE_PWD ""
+default DESC_USER ""
+default DESC_PWD ""
+
+
+#Declaring the 'TRAINING' store and space
+default TRAINING_STORE_TYPE "Kxen.FileStore"
+default TRAINING_STORE_NAME "C:\Forecasting"
+default TRAINING_STORE_USER $STORE_USER
+default TRAINING_STORE_PWD $STORE_PWD
+default TRAINING_STORE_ALIAS myTrainingStore
+default TRAINING_SPACE "AccidentsMultipleLocations.csv"
+default TRAINING_SEED 1960
+
+default MODEL_SAVE_STORE_TYPE "Kxen.FileStore"
+default MODEL_SAVE_STORE_NAME "."
+default MODEL_SAVE_STORE_USER ""
+default MODEL_SAVE_STORE_PWD ""
+default MODEL_SAVE_NAME "Accidents_AccidentsMultipleLocations_$MYLOCATION"
+default MODEL_SAVE_SPACE "Accidents_AccidentsMultipleLocations_$MYLOCATION.kxen"
+default MODEL_SAVE_COMMENT "The model 'Accidents_AccidentsMultipleLocations_$MYLOCATION' has been saved"
+
+createModel Kxen.SimpleModel m
+m.getParameter ""
+m.changeParameter Parameters/CutTrainingPolicy "sequential with no test"
+if $FORCE_CODINGSTRATEGY ne "" then m.changeParameter Parameters/CodingStrategy "8.0.1"
+m.setName "Accidents_AccidentsMultipleLocations"
+m.validateParameter
+
+m.bind protocol Default p
+p.getParameter ""
+p.changeParameter "Parameters/StrangeValueLevel" "12"
+p.changeParameter "Parameters/CopyTarget" "true"
+p.changeParameter "Parameters/UseDateCoder" "true"
+p.changeParameter "Parameters/ApplyInDataBase" "true"
+p.changeParameter "Parameters/IDBAFallbackToRegularApply" "true"
+p.changeParameter "Parameters/SoftMode" "false"
+p.changeParameter "Parameters/WeightInformation" ""
+p.validateParameter
+delete p
+
+m.pushTransformInProtocol Default Kxen.TimeSeries
+
+-delete $TRAINING_STORE_ALIAS
+m.openNewStore $TRAINING_STORE_TYPE $TRAINING_STORE_NAME $TRAINING_STORE_USER $TRAINING_STORE_PWD $TRAINING_STORE_ALIAS
+m.newDataSet Training $TRAINING_SPACE
+
+bind m DataSet Training t
+t.getParameter ""
+t.changeParameter Parameters/RandomSeed $TRAINING_SEED
+t.changeParameter Parameters/RandomMax 1.0
+t.changeParameter Parameters/RandomMin 0.0
+t.changeParameter Parameters/SkippedRows 0
+t.changeParameter Parameters/LastRow 54
+t.changeParameter Parameters/HeaderLines 1
+t.changeParameter Parameters/Locale ""
+t.validateParameter
+delete t
+bind m DataSet Training s
+s.startDescription
+s.addVariableDesc "Location" string nominal 0 0 "" "" ""
+s.addVariableDesc "Date" date continuous 1 1 "" "" ""
+s.addVariableDesc "Accidents" integer continuous 0 0 "" "" ""
+s.endDescription
+delete s
+# Build space filter tree structure
+bind m DataSet Training s
+s.getParameter ""
+s.bindParameter "Parameters/FilterCondition" FilterCondition1
+FilterCondition1.insert "SimpleFilter1" SimpleFilter2
+delete SimpleFilter2
+delete FilterCondition1
+s.validateParameter
+s.getParameter ""
+# Fill the space filter parameters
+s.changeParameter "Parameters/FilterCondition/Operator" "And"
+s.changeParameter "Parameters/FilterCondition/SimpleFilter1/Operator" "Equal"
+s.changeParameter "Parameters/FilterCondition/SimpleFilter1/Variable" "Location"
+s.changeParameter "Parameters/FilterCondition/SimpleFilter1/Value" $MYLOCATION
+s.validateParameter
+delete s
+
+m.bind TransformInProtocol Default 0 t
+t.getParameter ""
+t.changeParameter Parameters/DateColumnName Date
+t.changeParameter Parameters/AutoFeedCount 6
+t.changeParameter Parameters/MaxCyclics "450"
+t.changeParameter Parameters/ProcessOutliers true
+t.changeParameter Parameters/ForcePositiveForecast false
+t.changeParameter Parameters/ModelsGenerationOption Default
+t.changeParameter Parameters/ForecastsConnection true
+t.changeParameter Parameters/LastRowWithForecastingInformation 60
+t.changeParameter Parameters/VariableSelection/PercentageContrib 0.95
+t.changeParameter Parameters/VariableSelection/ActivateForEXPTrends true
+t.changeParameter Parameters/VariableSelection/ActivateForAutoRegressiveModels false
+t.validateParameter
+delete t
+
+
+m.checkMode learn
+
+
+m.bind protocol Default p
+p.getParameter ""
+p.changeParameter "Variables/Location/Role" skip
+p.changeParameter "Variables/Location/UserEnableCompress" true
+p.changeParameter "Variables/Date/Role" input
+p.changeParameter "Variables/Date/UserBandCount" 20
+p.changeParameter "Variables/Date/UserEnableCompress" true
+p.changeParameter "Variables/Accidents/Role" target
+p.changeParameter "Variables/Accidents/UserBandCount" 20
+p.changeParameter "Variables/Accidents/UserEnableCompress" true
+p.validateParameter
+delete p
+
+m.sendMode learn
+
+m.openNewStore $MODEL_SAVE_STORE_TYPE $MODEL_SAVE_STORE_NAME $MODEL_SAVE_STORE_USER $MODEL_SAVE_STORE_PWD
+m.saveModel $MODEL_SAVE_SPACE $MODEL_SAVE_COMMENT $MODEL_SAVE_NAME
+print $MODEL_SAVE_COMMENT
+delete m
+
+exit
