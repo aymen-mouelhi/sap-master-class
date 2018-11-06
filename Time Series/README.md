@@ -7,7 +7,8 @@ Please note that this guide is giving a high-level introductory overview and onl
 Download from GitHub
 
 [Tutorial](https://github.com/AndreasForster/Predictive/raw/master/AutomatedTimeSeriesTutorial/SAP_PA_Automated_TimeSeriesTutorial.pdf)
-Data (see the above Tutorial for information on the source of the data and the rights on the data)
+
+Data: (see the above Tutorial for information on the source of the data and the rights on the data)
 
 [LondonBikeHire.csv](https://github.com/AndreasForster/Predictive/raw/master/AutomatedTimeSeriesTutorial/LondonBikeHire.csv)
 
