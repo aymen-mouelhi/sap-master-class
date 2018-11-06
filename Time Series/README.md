@@ -10,6 +10,7 @@ Download from GitHub
 Data (see the above Tutorial for information on the source of the data and the rights on the data)
 
 [LondonBikeHire.csv](https://github.com/AndreasForster/Predictive/raw/master/AutomatedTimeSeriesTutorial/LondonBikeHire.csv)
+
 [LondonBikeHire_Extended.csv](https://github.com/AndreasForster/Predictive/raw/master/AutomatedTimeSeriesTutorial/LondonBikeHire_Extended.csv)
 
 Happy Forecasting!
